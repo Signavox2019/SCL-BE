@@ -11,7 +11,7 @@ exports.createCourse = async (req, res) => {
 
 exports.getAllCourses = async (req, res) => {
   try {
-    const courses = await Course.find().populate('professor', 'name email');
+    const courses = await Course.find().populate('professor');
     res.status(200).json(courses);
   } catch (error) {
     res.status(500).json({ message: "Error fetching courses", error });
@@ -20,7 +20,7 @@ exports.getAllCourses = async (req, res) => {
 
 exports.getCourse = async (req, res) => {
   try {
-    const course = await Course.findById(req.params.id).populate('professor', 'name email');
+    const course = await Course.findById(req.params.id).populate('professor');
     if (!course) return res.status(404).json({ message: "Course not found" });
     res.status(200).json(course);
   } catch (error) {
@@ -40,13 +40,22 @@ exports.updateCourse = async (req, res) => {
 
 exports.deleteCourse = async (req, res) => {
   try {
-    const deleted = await Course.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: "Course not found" });
-    res.status(200).json({ message: "Course deleted" });
+    const course = await Course.findById(req.params.id);
+    if (!course) return res.status(404).json({ message: "Course not found" });
+
+    if (course.enrolledUsers.length > 0) {
+      return res.status(400).json({
+        message: "Cannot delete course: users are still enrolled. Ask users to complete or drop the course."
+      });
+    }
+
+    await course.deleteOne(); // or use await Course.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Course deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting course", error });
   }
 };
+
 
 exports.enrollUser = async (req, res) => {
   try {
@@ -58,6 +67,8 @@ exports.enrollUser = async (req, res) => {
       course.enrolledUsers.push(userId);
       await course.save();
     }
+    else return res.status(400).json({ message: "User already enrolled" });
+
 
     res.status(200).json({ message: "User enrolled", course });
   } catch (error) {

@@ -12,6 +12,10 @@ router.delete('/:id', professorController.deleteProfessor);
 // Assign course
 router.post('/assign-course', professorController.assignCourseToProfessor);
 
+// Add this to your professorRoutes.js or courseRoutes.js
+router.post('/unassign-course', professorController.unassignCourseFromProfessor);
+
+
 // Stats
 router.get('/stats/metrics', professorController.professorStats);
 

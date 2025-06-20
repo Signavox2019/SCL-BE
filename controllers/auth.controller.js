@@ -23,7 +23,7 @@ const transporter = nodemailer.createTransport({
 exports.register = async (req, res) => {
   try {
     const {
-      name, email, password, phone,
+      name, email, password, phone, role,
       collegeName, course, department, university,
       degree, specialization, cgpa, currentYear,
       isGraduated, yearOfPassing, hasExperience,
@@ -39,6 +39,7 @@ exports.register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      role,
       phone,
       collegeName,
       course,

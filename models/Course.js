@@ -4,14 +4,14 @@ const subTopicSchema = new mongoose.Schema({
   title: { type: String, required: true },
   content: String,
   videoUrl: String,
-}, { _id: false });
+}, { _id: true });
 
 const topicSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
   videoUrl: String,
   subTopics: [subTopicSchema],
-}, { _id: false });
+}, { _id: true });
 
 const lessonSchema = new mongoose.Schema({
   title: { type: String, required: true },
@@ -25,13 +25,13 @@ const lessonSchema = new mongoose.Schema({
       answer: String
     }
   ]
-}, { _id: false });
+}, { _id: true });
 
 const moduleSchema = new mongoose.Schema({
   moduleTitle: { type: String, required: true },
   moduleDescription: String,
   lessons: [lessonSchema]
-}, { _id: false });
+}, { _id: true });
 
 const courseSchema = new mongoose.Schema({
   title: { type: String, required: true },
@@ -39,7 +39,7 @@ const courseSchema = new mongoose.Schema({
   duration: String,
   coverImage: String,
   modules: [moduleSchema],
-  professor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  professor: { type: mongoose.Schema.Types.ObjectId, ref: 'Professor' },
   enrolledUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   createdAt: { type: Date, default: Date.now }
 });

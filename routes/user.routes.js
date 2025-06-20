@@ -12,7 +12,7 @@ router.get('/:id', userController.getUser);
 // Approve or reject user registration (Admin)
 router.put('/status/:id', userController.updateUserStatus);
 
-router.put('/update-role', protect, allowRoles('Admin'), userController.updateUserRole);
+// router.put('/update-role', protect, allowRoles('Admin'), userController.updateUserRole);
 
 
 // Delete user (Admin)

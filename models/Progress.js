@@ -8,7 +8,7 @@ const progressSchema = new mongoose.Schema({
   completedModules: [{
     moduleId: { type: mongoose.Schema.Types.ObjectId, ref: 'CourseModule' },
     completedLessons: [{
-      lessonId: { type: mongoose.Schema.Types.ObjectId },
+      lessonId: { type: mongoose.Schema.Types.ObjectId, ref: "Lesson" },
       completedTopics: [{ type: String }],
       quizScore: Number,
       feedback: String

@@ -33,14 +33,14 @@ app.use('/api/professors', require('./routes/professor.routes'));               
 app.use('/api/enrollments', require('./routes/enrollment.routes'));             // Phase 4
 app.use('/api/certificates', require('./routes/certificate.routes'));           // Phase 5
 app.use('/api/events', require('./routes/event.routes'));                       // Phase 6
-app.use('/api/email', require('./routes/event.routes'));                        // Phase 7
+// app.use('/api/email', require('./routes/event.routes'));                        // Phase 7
 app.use('/api/notifications', require('./routes/notification.routes'));         // Phase 8, 16
 app.use('/api/payments', require('./routes/payment.routes'));                   // Phase 10
 app.use('/api/quizzes', require('./routes/quiz.routes'));                       // Phase 11
 app.use('/api/dashboard', require('./routes/dashboard.routes'));                // Phase 13
-// app.use('/api/feedbacks', require('./routes/feedback.routes'));                 // Phase 12
+app.use('/api/progress', require('./routes/progress.routes'));                 // Phase 12
 // app.use('/api/roles', require('./routes/'));                         // Phase 14
-
+app.use('/api/batches', require('./routes/batch.routes')); 
 // Default route
 app.get('/', (req, res) => {
   res.send('🚀 Signavox Career Ladder API is running...');
