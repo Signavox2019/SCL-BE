@@ -8,6 +8,7 @@ const optionSchema = new mongoose.Schema({
 const questionSchema = new mongoose.Schema({
   questionText: { type: String, required: true },
   options: [optionSchema],
+  marks: { type: Number, default: 1 } // ✅ NEW FIELD
 });
 
 const quizSchema = new mongoose.Schema({

@@ -1,10 +1,31 @@
 const Course = require('../models/Course');
+const Professor = require('../models/Professor');
 
 exports.createCourse = async (req, res) => {
   try {
-    const course = await Course.create(req.body);
-    res.status(201).json({ message: "Course created", course });
+    const { professor, ...courseData } = req.body;
+
+    // Check if professor is already engaged in any course
+    const prof = await Professor.findById(professor);
+
+    if (!prof) {
+      return res.status(404).json({ message: "Professor not found" });
+    }
+
+    if (prof.courses.length > 0) {
+      return res.status(400).json({ message: "Professor is already assigned to another course" });
+    }
+
+    // Create the course with the professor assigned
+    const course = await Course.create({ ...courseData, professor });
+
+    // Add this course to the professor's courses array
+    prof.courses.push(course._id);
+    await prof.save();
+
+    res.status(201).json({ message: "Course created and linked to professor", course });
   } catch (error) {
+    console.error("Course creation error →", error);
     res.status(500).json({ message: "Error creating course", error });
   }
 };

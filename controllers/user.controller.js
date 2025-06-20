@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Professor = require('../models/Professor');
 
 // ✅ Get all users (Admin)
 exports.getAllUsers = async (req, res) => {
@@ -67,19 +68,30 @@ exports.deleteUser = async (req, res) => {
 exports.userStats = async (req, res) => {
   try {
     const total = await User.countDocuments();
-    const interns = await User.countDocuments({ role: 'intern' });
-    const professors = await User.countDocuments({ role: 'professor' });
-    const admins = await User.countDocuments({ role: 'admin' });
-    const approved = await User.countDocuments({ isApproved: true });
-    const pending = await User.countDocuments({ isApproved: false });
+    const interns = await User.find({ role: 'intern' });
+    const admins = await User.find({ role: 'admin' });
+    const approved = await User.find({ isApproved: true });
+    const pending = await User.find({ isApproved: false });
+
+    const professors = await Professor.find(); // Fetch from Professor model
+    const professorCount = await Professor.countDocuments();
 
     res.status(200).json({
       totalUsers: total,
-      interns,
-      professors,
-      admins,
-      approvedUsers: approved,
-      pendingApprovals: pending
+      counts: {
+        interns: interns.length,
+        professors: professorCount,
+        admins: admins.length,
+        approvedUsers: approved.length,
+        pendingApprovals: pending.length,
+      },
+      users: {
+        interns,
+        professors,
+        admins,
+        approved,
+        pending
+      }
     });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch user stats", error });

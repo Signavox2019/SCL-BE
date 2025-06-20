@@ -3,7 +3,9 @@ const Notification = require('../models/Notification');
 // Create Notification
 exports.createNotification = async (req, res) => {
   try {
-    const { user, title, message, type, link } = req.body;
+    const { title, message, type, link } = req.body;
+    const user = req.user._id; // Fetched from token
+
     const notification = await Notification.create({ user, title, message, type, link });
     res.status(201).json({ message: 'Notification sent', notification });
   } catch (error) {
@@ -11,10 +13,10 @@ exports.createNotification = async (req, res) => {
   }
 };
 
-// Get All Notifications for User
+// Get All Notifications for Authenticated User
 exports.getNotificationsByUser = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user._id;
     const notifications = await Notification.find({ user: userId }).sort({ createdAt: -1 });
     res.status(200).json(notifications);
   } catch (error) {
@@ -22,11 +24,16 @@ exports.getNotificationsByUser = async (req, res) => {
   }
 };
 
-// Mark as Read
+// Mark a Notification as Read
 exports.markAsRead = async (req, res) => {
   try {
     const { notificationId } = req.params;
-    await Notification.findByIdAndUpdate(notificationId, { isRead: true });
+    const notification = await Notification.findOneAndUpdate(
+      { _id: notificationId, user: req.user._id },
+      { isRead: true }
+    );
+    if (!notification) return res.status(404).json({ message: 'Notification not found or access denied' });
+
     res.status(200).json({ message: 'Notification marked as read' });
   } catch (error) {
     res.status(500).json({ message: 'Error updating notification', error });
@@ -36,19 +43,25 @@ exports.markAsRead = async (req, res) => {
 // Delete Notification
 exports.deleteNotification = async (req, res) => {
   try {
-    await Notification.findByIdAndDelete(req.params.id);
+    const deleted = await Notification.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user._id
+    });
+    if (!deleted) return res.status(404).json({ message: 'Notification not found or access denied' });
+
     res.status(200).json({ message: 'Notification deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting notification', error });
   }
 };
 
-// Metrics Count
+// Get Notification Stats (for logged-in user)
 exports.notificationStats = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user._id;
     const total = await Notification.countDocuments({ user: userId });
     const unread = await Notification.countDocuments({ user: userId, isRead: false });
+
     res.status(200).json({ total, unread });
   } catch (error) {
     res.status(500).json({ message: 'Error getting notification stats', error });
