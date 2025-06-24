@@ -7,10 +7,10 @@ const verifyToken = require('../middleware/verifyToken')
 const { protect, allowRoles } = require('../middleware/auth.middleware');
 
 // Track progress
-router.post('/update', progressController.updateProgress);
+router.post('/update', protect, progressController.updateProgress);
 
 // Mark completion
-router.post('/complete', progressController.completeCourse);
+router.post('/complete', protect, progressController.completeCourse);
 
 // Bulk completion
 router.post('/complete/bulk', protect, allowRoles('admin'), progressController.completeCoursesBulk);
@@ -24,6 +24,6 @@ router.get('/admin/all', protect, allowRoles('admin'), progressController.getAll
 router.get('/:courseId', verifyToken, progressController.getUserProgress);
 
 // Stats
-router.get('/stats/metrics', progressController.progressStats);
+router.get('/stats/metrics', protect, progressController.progressStats);
 
 module.exports = router;

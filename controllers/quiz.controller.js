@@ -1,5 +1,8 @@
 const Quiz = require('../models/Quiz');
 const QuizAttempt = require('../models/QuizAttempt');
+const StudentProgress = require('../models/StudentProgress');
+const Batch = require('../models/Batch'); // ✅ Add this line
+
 
 // Create Quiz
 exports.createQuiz = async (req, res) => {
@@ -91,16 +94,22 @@ exports.submitAttempt = async (req, res) => {
     let totalMarks = 0;
 
     quiz.questions.forEach((q, i) => {
+      const userAnswer = answers[i];
       const correctOption = q.options.find(opt => opt.isCorrect);
-      const marks = q.marks || 1; // default to 1 if marks not set
-      totalMarks += marks;
+      const marks = q.marks || 1;
 
-      if (answers[i] && correctOption && correctOption.text === answers[i]) {
-        score += marks;
+      // Only include this question if the user attempted it
+      if (userAnswer !== undefined && userAnswer !== null && userAnswer.trim() !== '') {
+        totalMarks += marks;
+
+        if (correctOption && correctOption.text === userAnswer) {
+          score += marks;
+        }
       }
     });
 
-    const passed = score >= totalMarks / 2;
+    // Consider pass only if score >= 50% of attempted questions
+    const passed = totalMarks > 0 ? score >= totalMarks / 2 : false;
 
     const attempt = await QuizAttempt.create({
       quiz: quizId,
@@ -117,9 +126,11 @@ exports.submitAttempt = async (req, res) => {
       attempt,
     });
   } catch (err) {
+    console.error('Quiz submission error:', err);
     res.status(500).json({ message: 'Failed to submit quiz', error: err });
   }
 };
+
 
 
 // Get attempts by user
@@ -177,5 +188,62 @@ exports.quizStats = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: 'Error fetching stats', error: err });
+  }
+};
+
+
+// Assign a quiz to a batch and auto-assign to all batch users
+exports.assignQuizToBatch = async (req, res) => {
+  try {
+    const { batchId, quizId } = req.body;
+
+    if (!batchId || !quizId) {
+      return res.status(400).json({ message: 'batchId and quizId are required' });
+    }
+
+    const batch = await Batch.findById(batchId);
+    if (!batch) {
+      return res.status(404).json({ message: 'Batch not found' });
+    }
+
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) {
+      return res.status(404).json({ message: 'Quiz not found' });
+    }
+
+    // Update batch doc with quiz reference (optional for listing)
+    batch.quizzes.push({
+      title: quiz.title,
+      date: new Date(),
+      details: `Assigned quiz ID: ${quizId}`
+    });
+    await batch.save();
+
+    // Assign quiz to all users in batch (as pending attempt)
+    const userIds = batch.users;
+    if (!userIds.length) {
+      return res.status(400).json({ message: 'No users found in this batch' });
+    }
+
+    const newAttempts = userIds.map(userId => ({
+      quiz: quizId,
+      user: userId,
+      score: 0,
+      passed: false
+    }));
+
+    await QuizAttempt.insertMany(newAttempts);
+
+    res.status(200).json({
+      message: 'Quiz assigned to batch and users',
+      assignedUsers: userIds.length
+    });
+
+  } catch (error) {
+    console.error("Quiz assignment failed →", error);
+    res.status(500).json({
+      message: 'Failed to assign quiz to batch',
+      error: error.message || error.toString()
+    });
   }
 };

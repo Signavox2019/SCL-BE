@@ -57,6 +57,12 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal Server Error', error: err.message });
 });
 
+app.use((req, res, next) => {
+  console.log('[DEBUG] Unmatched Route:', req.method, req.originalUrl);
+  next();
+});
+
+
 // // Start server
 // const PORT = process.env.PORT || 8000;
 // app.listen(PORT, () => {

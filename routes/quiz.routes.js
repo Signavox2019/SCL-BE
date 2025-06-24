@@ -15,7 +15,8 @@ router.delete('/:id', quizController.deleteQuiz);
 router.post('/submit', quizController.submitAttempt);
 // Get attempts for specific user (admin only)
 router.get('/attempts/:userId', protect, allowRoles('admin'), quizController.getUserAttempts);
-
+// assign quiz to batch
+router.post('/assign-to-batch', protect, allowRoles('admin'), quizController.assignQuizToBatch);
 
 
 

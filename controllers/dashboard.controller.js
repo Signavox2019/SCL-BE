@@ -1,27 +1,29 @@
-const StudentProgress = require('../models/StudentProgress');
+const Progress = require('../models/Progress');
 const Certificate = require('../models/Certificate');
 const Event = require('../models/Event');
+const Course = require('../models/Course');
 
-exports.getDashboardData = async (req, res) => {
-  try {
-    const userId = req.user._id;
 
-    const progress = await StudentProgress.find({ user: userId })
-      .populate('course currentModule currentLesson currentSubtopic');
+// exports.getDashboardData = async (req, res) => {
+//   try {
+//     const userId = req.user._id;
 
-    const certificates = await Certificate.find({ user: userId }).populate('course');
-    const events = await Event.find({ registeredUsers: userId });
+//     const progress = await Progress.find({ user: userId })
+//       .populate('course currentModule currentLesson currentSubtopic');
 
-    res.status(200).json({
-      message: 'Dashboard data fetched',
-      enrolledCourses: progress,
-      certificates,
-      registeredEvents: events
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch dashboard data', error });
-  }
-};
+//     const certificates = await Certificate.find({ user: userId }).populate('course');
+//     const events = await Event.find({ registeredUsers: userId });
+
+//     res.status(200).json({
+//       message: 'Dashboard data fetched',
+//       enrolledCourses: progress,
+//       certificates,
+//       registeredEvents: events
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Failed to fetch dashboard data', error });
+//   }
+// };
 
 
 
@@ -30,10 +32,10 @@ exports.getDashboardData = async (req, res) => {
 //     const userId = req.user._id;
 //     const { courseId, moduleId, lessonId, subtopicId } = req.body;
 
-//     let progress = await StudentProgress.findOne({ user: userId, course: courseId });
+//     let progress = await Progress.findOne({ user: userId, course: courseId });
 
 //     if (!progress) {
-//       progress = new StudentProgress({ user: userId, course: courseId });
+//       progress = new Progress({ user: userId, course: courseId });
 //     }
 
 //     // Push only if not already added
@@ -60,7 +62,7 @@ exports.getDashboardData = async (req, res) => {
 //     await progress.save();
 
 //     // Populate response with references
-//     const populatedProgress = await StudentProgress.findById(progress._id)
+//     const populatedProgress = await Progress.findById(progress._id)
 //       .populate('user', 'name email')
 //       .populate('course', 'title')
 //       .populate('currentModule', 'moduleTitle')
@@ -78,13 +80,40 @@ exports.getDashboardData = async (req, res) => {
 //   }
 // };
 
+exports.getDashboardData = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const progress = await Progress.find({ user: userId }).populate('course');
+    const certificates = await Certificate.find({ user: userId }).populate('course');
+    const events = await Event.find({ registeredUsers: userId });
+
+    // ✅ Filter completed courses based on `isCompleted` field
+    const completedCourses = progress
+      .filter(p => p.isCompleted)
+      .map(p => p.course);
+
+    res.status(200).json({
+      message: 'Dashboard data fetched',
+      enrolledCourses: progress,
+      completedCourses,
+      certificates,
+      registeredEvents: events
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch dashboard data', error: error.message || error });
+  }
+};
+
+
+
 
 
 exports.getProgressStats = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    const progress = await StudentProgress.find({ user: userId });
+    const progress = await Progress.find({ user: userId });
     const totalCourses = progress.length;
     const completedCourses = progress.filter(p => p.progressPercentage === 100).length;
     const averageProgress = progress.reduce((acc, p) => acc + p.progressPercentage, 0) / (totalCourses || 1);
