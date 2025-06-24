@@ -97,3 +97,18 @@ exports.userStats = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch user stats", error });
   }
 };
+
+
+// ✅ Get all users waiting for approval
+exports.getWaitingUsers = async (req, res) => {
+  try {
+    const waitingUsers = await User.find({ isApproved: false }).sort({ registeredAt: -1 });
+    res.status(200).json({
+      message: 'Pending users fetched successfully',
+      count: waitingUsers.length,
+      users: waitingUsers
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch pending users', error });
+  }
+};

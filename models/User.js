@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   isApproved: { type: Boolean, default: false },
   profileImage: String,
   phone: String,
+  resume: String,
 
   // College Details
   collegeName: String,

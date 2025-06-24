@@ -3,22 +3,27 @@ const router = express.Router();
 const userController = require('../controllers/user.controller');
 const { protect, allowRoles } = require('../middleware/auth.middleware');
 
+
+// Get Waiting Users
+router.get('/waiting', protect, allowRoles('admin'), userController.getWaitingUsers);
+
+
 // Get all users (Admin)
-router.get('/', userController.getAllUsers);
+router.get('/', protect, allowRoles('admin'), userController.getAllUsers);
 
 // Get specific user by ID
-router.get('/:id', userController.getUser);
+router.get('/:id', protect, allowRoles('admin'), userController.getUser);
 
 // Approve or reject user registration (Admin)
-router.put('/status/:id', userController.updateUserStatus);
+router.put('/status/:id', protect, allowRoles('admin'), userController.updateUserStatus);
 
 // router.put('/update-role', protect, allowRoles('Admin'), userController.updateUserRole);
 
 
 // Delete user (Admin)
-router.delete('/:id', userController.deleteUser);
+router.delete('/:id', protect, allowRoles('admin'), userController.deleteUser);
 
 // Get user metrics
-router.get('/stats/metrics', userController.userStats);
+router.get('/stats/metrics', protect, allowRoles('admin'), userController.userStats);
 
 module.exports = router;
